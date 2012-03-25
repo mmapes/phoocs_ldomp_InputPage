@@ -1,14 +1,14 @@
 <?php
 class InputPage
 {
-	const CHOOSER   = 0;
-	const ALL_JSON  = 1;
-	const STAY_HERE = 2;
+	const CHOOSER    = 0;
+	const ALL_JSON   = 1;
+	const STAY_HERE  = 2;
+	const CLOSE_SELF = 3;
 	public $dataObjectClass = ""; 	// e.g., public $dataObjectClass = "DO_movie";
 
-	function draw() { /* override with your own subclass */ }
-	function goChooser() { /* e.g., header("Location: choose_movie.php"); */ }
-	function getPostedObject() 
+	protected function goChooser() { /* e.g., header("Location: choose_movie.php"); */ }
+	protected function getPostedObject() 
 	{
 		/* e.g., 
 		$new_DO = new $this->dataObjectClass();
@@ -31,10 +31,13 @@ class InputPage
 
 		$this->new_DO = new $this->dataObjectClass();
 
-		$this->pks = $this->new_DO->primaryKeys;
+		$this->pks = $this->new_DO->getPrimaryKeys();
 		
 		// if form has been submitted, insert the contact
-		if (getRequest('Insert', 'POST', '') == 'Submit') 
+		if (
+			getRequest('Insert', 'POST', '') == 'Submit' ||
+			getRequest('CreateCopy', 'POST', '') == 'Create a copy'
+		   ) 
 		{
 			$this->updateAfterInsert();
 			$success = $this->insertPostedObject();
@@ -46,6 +49,20 @@ class InputPage
 		{
 			$this->updateAfterInsert();
 			$success = $this->updatePostedObject();
+			$this->doAfterInsert();
+		}
+		
+		if (getRequest('UpdatePartial', 'POST', '') == 'Submit') 
+		{
+			$this->updateAfterInsert();
+			$success = $this->partialUpdatePostedObject();
+			$this->doAfterInsert();
+		}
+		
+		if (getRequest('Delete', 'POST', '') == 'Delete') 
+		{
+			$this->updateAfterInsert();
+			$success = $this->deletePostedObject();
 			$this->doAfterInsert();
 		}
 
@@ -62,7 +79,7 @@ class InputPage
 	
 	function prefillForm()
 	{
-//		$this->loc_idDO = getRequest($this->pk, 'BOTH', '');
+		//$this->loc_idDO = getRequest($this->pk, 'BOTH', '');
 		$this->update = true;
 		$this->our_DO = new $this->dataObjectClass();
 		foreach ($this->pks as $pk) 
@@ -72,20 +89,7 @@ class InputPage
 		$this->our_DO->get();
 	}
 
-/*
-	function prefillForm_bad()
-	{
-		$findTemplate = $this->getPostedObject();
-		$resultset = $findTemplate->find();
-		$this->ourDOs = array();
-		for ($i = 0; $i < $resultset->rowCount(); $i++)
-		{
-			$this->ourDOs[] = $resultset->getNext( new $this->dataObjectClass() );
-		}
-	}
-*/
-
-	function doAfterInsert()
+	public function doAfterInsert()
 	{
 		if ($this->afterInsert == self::CHOOSER)
 		{
@@ -97,12 +101,16 @@ class InputPage
 		}
 		if ($this->afterInsert == self::STAY_HERE)
 		{
-			$this->prefillForm();
+			// $this->prefillForm();	// misleading - looks like we preload the page but we really don't
 			$this->our_DO = $this->getPostedObject();
+		}
+		if ($this->afterInsert == self::CLOSE_SELF)
+		{
+			$this->our_DO = $this->closeSelf();
 		}
 	}
 	
-	function writeAllDataObjectsJson()
+	public function writeAllDataObjectsJson()
 	{
 		$o = new $this->dataObjectClass();
 		?>
@@ -116,13 +124,28 @@ class InputPage
 		<?php
 		exit;
 	}
+
+	protected function closeSelf()
+	{
+		$o = new $this->dataObjectClass();
+		?>
+		<script>
+		if (window.opener)
+		{
+			window.close();
+		}
+		</script>
+		<?php
+		exit;
+	}
 	
-	function setAfterInsert($action)
+	public function setAfterInsert($action)
 	{
 		if (
 			$action == self::CHOOSER || 
 			$action == self::ALL_JSON || 
-			$action == self::STAY_HERE
+			$action == self::STAY_HERE ||
+			$action == self::CLOSE_SELF
 		   )
 		{
 			$this->afterInsert = $action;
@@ -130,7 +153,7 @@ class InputPage
 		return $this->afterInsert;
 	}
 	
-	function updateAfterInsert()
+	public function updateAfterInsert()
 	{
 		if (getRequest('afterSubmit', 'POST', '') != '')
 		{
@@ -138,17 +161,27 @@ class InputPage
 		}
 	}
 	
-	function insertPostedObject()
+	protected function insertPostedObject()
 	{
 		$this->new_DO = $this->getPostedObject();
 		return $this->new_DO->insert();
 	}
 	
-	function updatePostedObject()
+	protected function updatePostedObject()
 	{
 		$this->new_DO = $this->getPostedObject();
 		$this->new_DO->update();
 	}
+	
+	protected function partialUpdatePostedObject()
+	{
+		$this->new_DO = $this->getPostedObject();
+		$this->new_DO->updatePartial();
+	}
+	
+	protected function deletePostedObject()
+	{
+		$this->new_DO = $this->getPostedObject();
+		$this->new_DO->del();
+	}
 }
-
-?>
