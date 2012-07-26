@@ -77,7 +77,7 @@ class InputPage
 		}
 	}
 	
-	function prefillForm()
+	public function prefillForm()
 	{
 		//$this->loc_idDO = getRequest($this->pk, 'BOTH', '');
 		$this->update = true;
