@@ -5,7 +5,10 @@ class InputPage
 	const ALL_JSON   = 1;
 	const STAY_HERE  = 2;
 	const CLOSE_SELF = 3;
+	
 	public $dataObjectClass = ""; 	// e.g., public $dataObjectClass = "DO_movie";
+	public $submitValue = 'Submit';
+	public $deleteValue = 'Delete';
 
 	protected function goChooser() { /* e.g., header("Location: choose_movie.php"); */ }
 	protected function getPostedObject() 
@@ -35,7 +38,7 @@ class InputPage
 		
 		// if form has been submitted, insert the contact
 		if (
-			getRequest('Insert', 'POST', '') == 'Submit' ||
+			getRequest('Insert', 'POST', '') == $this->submitValue ||
 			getRequest('CreateCopy', 'POST', '') == 'Create a copy'
 		   ) 
 		{
@@ -45,21 +48,21 @@ class InputPage
 		}
 
 		// if UPDATE form has been submitted, update the contact
-		if (getRequest('Update', 'POST', '') == 'Submit') 
+		if (getRequest('Update', 'POST', '') == $this->submitValue) 
 		{
 			$this->updateAfterInsert();
 			$success = $this->updatePostedObject();
 			$this->doAfterInsert();
 		}
 		
-		if (getRequest('UpdatePartial', 'POST', '') == 'Submit') 
+		if (getRequest('UpdatePartial', 'POST', '') == $this->submitValue) 
 		{
 			$this->updateAfterInsert();
 			$success = $this->partialUpdatePostedObject();
 			$this->doAfterInsert();
 		}
 		
-		if (getRequest('Delete', 'POST', '') == 'Delete') 
+		if (getRequest('Delete', 'POST', '') == $this->deleteValue) 
 		{
 			$this->updateAfterInsert();
 			$success = $this->deletePostedObject();
