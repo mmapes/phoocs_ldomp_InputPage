@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * Class InputPage
+ *
+ * Requires that you include the function getRequest()
+ */
 class InputPage
 {
 	const CHOOSER    = 0;
@@ -9,6 +15,26 @@ class InputPage
 	public $dataObjectClass = ""; 	// e.g., public $dataObjectClass = "DO_movie";
 	public $submitValue = 'Submit';
 	public $deleteValue = 'Delete';
+	/**
+	 * @var bool
+	 */
+	protected $update;
+	/**
+	 * @var int
+	 */
+	protected $afterInsert;
+	/**
+	 * @var DoBase or something that inherits it
+	 */
+	protected $new_DO;
+	/**
+	 * @var array of primary keys
+	 */
+	protected $pks;
+	/**
+	 * @var DoBase or something that inherits it
+	 */
+	private $our_DO;
 
 	protected function goChooser() { /* e.g., header("Location: choose_movie.php"); */ }
 	protected function getPostedObject() 
